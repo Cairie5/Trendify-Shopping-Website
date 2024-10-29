@@ -2,37 +2,127 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
+body {
+  background-color: #f7efe5; /* Set the background color for the entire website */
+  margin: 0; /* Remove default margin */
+}
+
+.trendify-logo {
+  height: 150px; /* Adjust the height for your logo */
   pointer-events: none;
+  position: absolute; /* Positioning the logo */
+  top: 0px; /* Distance from the top */
+  left: 5px; /* Distance from the left */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.SignInPage {
+  margin: 20px; /* Adjust the margin for your SignIn page */
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.message {
+  margin-top: 10px;
+}
+
+/* Layout Styles */
+.layout {
+  text-align: center;
+}
+
+.header {
+  background-color: #f7efe5; /* Header background color */
+  min-height: 80px; /* Minimum height for the header */
+  display: flex;
+  align-items: center; /* Center items vertically */
+  justify-content: flex-start; /* Align items to the left */
+  padding: 20px; /* Adjust padding for spacing */
+}
+
+/* Sign Up Styles */
+.SignUpPage {
+  width: 100vw; /* Full width of the viewport */
+  height: 100vh; /* Full height of the viewport */
+  background-color: #f7efe5; /* Keep the sign-up page background color the same */
+  display: flex; /* Use flexbox for centering */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
+.SignUp {
+  position: absolute;
+  left: 1239px;
+  top: 76px;
+  color: black;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.Frame1 {
+  width: 904px;
+  height: auto; /* Change to auto for responsive height */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px; /* Shadow for depth */
   display: flex;
   flex-direction: column;
-  align-items: center;
+  padding: 20px;
+}
+
+.PleaseSignUp {
+  color: black;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+.input-label {
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.authentication-input {
+  width: 100%;
+  height: 40px;
+  margin-bottom: 15px;
+  border: 2px solid #f8d3d3; /* You can remove or change this if you want a different border */
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.user-options {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.user-option {
+  padding: 10px 20px; /* Add some padding for better appearance */
+  border: 2px solid #f8d3d3; /* Optional: Border for buttons */
+  border-radius: 5px; /* Optional: Rounded corners */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition for the background color and text color */
+  cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+/* Updated hover color for better visibility */
+.user-option:hover {
+  background-color: #2d0cb0; /* Bright blue hover color */
+  color: rgb(255, 255, 255); /* Change text color to white for contrast */
+}
+
+.selected-user {
+  color: rgb(200, 117, 8);
+}
+
+/* Sign In Container */
+.SignIn-container {
+  margin-top: 20px;
+  display: flex;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+/* Sign In Link Styles */
+.signin-link {
+  color: black; /* Default color */
+  text-decoration: none; /* Remove underline */
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.signin-link:hover {
+  color: #2d0cb0; /* Change to your desired hover color */
 }

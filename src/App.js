@@ -1,24 +1,25 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import SignIn from './SignIn'; // Ensure this path is correct
+import SignUp from './SignUp'; // Ensure you create this component
+import './App.css'; // Import your CSS file
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="layout">
+        <header className="header">
+          <img src={`${process.env.PUBLIC_URL}/logo.png`} className="trendify-logo" alt="Company Logo" />
+        </header>
+        <main>
+          <Routes>
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+            {/* Add other routes as needed */}
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 
