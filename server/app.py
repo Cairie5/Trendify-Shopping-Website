@@ -2,7 +2,7 @@ from flask import Flask
 from config import Config
 from database import db
 from routes import routes  # Import the blueprint directly
-from flask_mail import Mail # type: ignore
+from flask_mail import Mail 
 from flask_migrate import Migrate  # Import Migrate
 
 def create_app():
