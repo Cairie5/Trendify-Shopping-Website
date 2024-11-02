@@ -1,71 +1,123 @@
-from app import create_app, db  # Import create_app and db
-from models.user import User
-from models.product import Product
-from models.order import Order
-from models.order_item import OrderItem
-from models.review import Review
+from datetime import datetime
+from werkzeug.security import generate_password_hash
+from app import create_app
+from database import db
+from models import User, Product, Review, Order, OrderItem
 
-app = create_app()  # Create the app instance
+app = create_app()
 
-def seed_data():
-    with app.app_context():
-        # Clear existing data
-        db.drop_all()
-        db.create_all()
+with app.app_context():
+    # Drop all tables and recreate them for clean seeding (optional, use with caution)
+    db.drop_all()
+    db.create_all()
 
-        # Create sample users
-        users = [
-            User(name="Alice", email="alice@example.com", password="password123", role='user'),
-            User(name="Bob", email="bob@example.com", password="password123", role='user'),
-            User(name="Charlie", email="charlie@example.com", password="password123", role='user'),
-        ]
-        
-        # Create sample products with stock_quantity
-        products = [
-            Product(name="Product 1", description="Description for Product 1", price=10.99, stock_quantity=100, category="Category A"),
-            Product(name="Product 2", description="Description for Product 2", price=20.99, stock_quantity=50, category="Category B"),
-            Product(name="Product 3", description="Description for Product 3", price=15.49, stock_quantity=75, category="Category A"),
-        ]
+    # Seed Users
+    user1 = User(
+        name="John Doe",
+        email="john@example.com",
+        phone_number="1234567890",
+        password_hash=generate_password_hash("password123"),
+    )
+    user2 = User(
+        name="Jane Smith",
+        email="jane@example.com",
+        phone_number="0987654321",
+        password_hash=generate_password_hash("securepassword"),
+    )
+    admin = User(
+        name="Admin User",
+        email="admin@example.com",
+        phone_number="1112223333",
+        password_hash=generate_password_hash("adminpassword"),
+    )
+    db.session.add_all([user1, user2, admin])
+    db.session.commit()  # Commit here to ensure users have IDs assigned
 
-        # Add users and products to session
-        db.session.add_all(users)
-        db.session.add_all(products)
-        db.session.commit()
+    # Seed Products
+    product1 = Product(
+        name="Vintage Leather Jacket",
+        description="A high-quality leather jacket with a vintage feel.",
+        price=120.00,
+        stock_quantity=10,
+        category="Men's Wear",
+        image_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTvFW3vxZrIj2kdJfjFoG7L6M8y51rUrct3w&s",
+    )
+    product2 = Product(
+        name="Handmade Silver Necklace",
+        description="A beautiful handmade silver necklace perfect for any occasion.",
+        price=80.00,
+        stock_quantity=25,
+        category="Jewelry",
+        image_url="https://th.bing.com/th/id/OIP.3u9XwOoXe4B946OlBxiZMwAAAA?w=474&h=474&rs=1&pid=ImgDetMain",
+    )
+    product3 = Product(
+        name="Running Shoes",
+        description="Lightweight running shoes designed for maximum comfort and performance.",
+        price=60.00,
+        stock_quantity=50,
+        category="Footwear",
+        image_url="https://th.bing.com/th/id/R.94d9d4c622bc2bd88bc90210b12f63c6?rik=r5KR74hiWnr6nA&pid=ImgRaw&r=0",
+    )
+    db.session.add_all([product1, product2, product3])
+    db.session.commit()  # Commit products to ensure they have IDs
 
-        # Create sample orders with shipping_address
-        orders = [
-            Order(user_id=1, total_amount=31.48, status='pending', shipping_address='123 Main St, Anytown, USA'),  # Alice's order
-            Order(user_id=2, total_amount=20.99, status='pending', shipping_address='456 Elm St, Othertown, USA'),  # Bob's order
-        ]
+    # Seed Reviews
+    review1 = Review(
+        product_id=product1.product_id,
+        user_id=user1.user_id,
+        rating=5,
+        review_text="Amazing quality and perfect fit!",
+        created_at=datetime.utcnow(),
+    )
+    review2 = Review(
+        product_id=product2.product_id,
+        user_id=user2.user_id,
+        rating=4,
+        review_text="Beautiful necklace, but a bit overpriced.",
+        created_at=datetime.utcnow(),
+    )
+    db.session.add_all([review1, review2])
+    db.session.commit()  # Commit reviews
 
-        # Add orders to session
-        db.session.add_all(orders)
-        db.session.commit()
+    # Seed Orders and Order Items
+    order1 = Order(
+        user_id=user1.user_id,
+        total_amount=120.00,
+        status="completed",
+        shipping_address="123 Main Street, Cityville",
+        created_at=datetime.utcnow(),
+    )
+    order_item1 = OrderItem(
+        order=order1,
+        product_id=product1.product_id,
+        quantity=1,
+        price_at_purchase=120.00,
+    )
+    db.session.add(order1)
+    db.session.add(order_item1)
 
-        # Create sample order items with price_at_purchase
-        order_items = [
-            OrderItem(order_id=1, product_id=1, quantity=2, price_at_purchase=10.99),  # 2 of Product 1 in Alice's order
-            OrderItem(order_id=1, product_id=2, quantity=1, price_at_purchase=20.99),  # 1 of Product 2 in Alice's order
-            OrderItem(order_id=2, product_id=2, quantity=1, price_at_purchase=20.99),  # 1 of Product 2 in Bob's order
-            OrderItem(order_id=2, product_id=3, quantity=1, price_at_purchase=15.49),  # 1 of Product 3 in Bob's order
-        ]
+    order2 = Order(
+        user_id=user2.user_id,
+        total_amount=140.00,
+        status="pending",
+        shipping_address="456 Maple Avenue, Townsville",
+        created_at=datetime.utcnow(),
+    )
+    order_item2a = OrderItem(
+        order=order2,
+        product_id=product2.product_id,
+        quantity=1,
+        price_at_purchase=80.00,
+    )
+    order_item2b = OrderItem(
+        order=order2,
+        product_id=product3.product_id,
+        quantity=1,
+        price_at_purchase=60.00,
+    )
+    db.session.add(order2)
+    db.session.add_all([order_item2a, order_item2b])
 
-        # Add order items to session
-        db.session.add_all(order_items)
-        db.session.commit()
-
-        # Create sample reviews
-        reviews = [
-            Review(product_id=1, user_id=1, rating=5, review_text="Excellent product! Highly recommend."),
-            Review(product_id=2, user_id=2, rating=4, review_text="Very good, but a bit expensive."),
-            Review(product_id=3, user_id=3, rating=3, review_text="It's okay, not the best I've used."),
-        ]
-
-        # Add reviews to session
-        db.session.add_all(reviews)
-        db.session.commit()
-
-        print("Database seeded with users, products, orders, order items, and reviews!")
-
-if __name__ == "__main__":
-    seed_data()
+    # Commit all orders and order items
+    db.session.commit()
+    print("Database seeded successfully!")

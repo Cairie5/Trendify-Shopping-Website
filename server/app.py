@@ -1,13 +1,24 @@
 from flask import Flask
+from flask_cors import CORS  # Import CORS
 from config import Config
 from database import db
 from routes import routes  # Import the blueprint directly
 from flask_mail import Mail 
 from flask_migrate import Migrate  # Import Migrate
+from datetime import timedelta
+
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5000", "http://localhost:3000"], "methods": ["GET", "POST", "DELETE", "OPTIONS"], "supports_credentials": True}})
+
+    
+    app.config['SECRET_KEY'] = "3d1139f9a28f5d4b2b57e8ca2fd70d9e"
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
+    app.config['SESSION_COOKIE_SAMESITE'] = "None"  # Necessary for cross-site cookie sharing
+    app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production
 
     # Initialize Mail for sending emails
     mail = Mail(app)

@@ -13,5 +13,6 @@ class Product(db.Model):
     image_url = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    reviews = db.relationship('Review', back_populates='product')
-    order_items = db.relationship('OrderItem', back_populates='product')
+    # Relationships
+    order_items = db.relationship('OrderItem', back_populates='product', cascade='all, delete-orphan')
+    reviews = db.relationship('Review', back_populates='product', cascade='all, delete-orphan')

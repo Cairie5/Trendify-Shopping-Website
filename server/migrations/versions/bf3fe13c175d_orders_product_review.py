@@ -1,8 +1,8 @@
-"""associating orders,products and users
+"""orders,product,review
 
-Revision ID: b8adefffb681
+Revision ID: bf3fe13c175d
 Revises: 
-Create Date: 2024-10-28 23:45:11.547145
+Create Date: 2024-11-02 15:42:05.703670
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b8adefffb681'
+revision = 'bf3fe13c175d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -33,7 +33,8 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
-    sa.Column('password', sa.String(length=255), nullable=False),
+    sa.Column('phone_number', sa.Integer(), nullable=False),
+    sa.Column('password_hash', sa.String(length=255), nullable=False),
     sa.Column('role', sa.Enum('user', 'admin'), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('user_id'),
