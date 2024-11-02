@@ -5,6 +5,8 @@ from functools import wraps
 
 routes = Blueprint('routes', __name__)
 
+# # CORS CONFIGURATIONS
+
 def _build_cors_prelight_response():
     response = make_response()
     response.headers.add("Access-Control-Allow-Origin", "https://localhost:3000")
