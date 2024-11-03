@@ -1,17 +1,20 @@
-from flask import Blueprint, request, jsonify,make_response
+from flask import Blueprint, request, jsonify, make_response
 from models import db, User, Product, Review, Order, OrderItem
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 
 routes = Blueprint('routes', __name__)
 
-# # CORS CONFIGURATIONS
+# Initialize JWT Manager
+jwt = JWTManager()
 
+# CORS CONFIGURATIONS
 def _build_cors_prelight_response():
     response = make_response()
-    response.headers.add("Access-Control-Allow-Origin", "https://localhost:3000")
-    response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Origin", "http://localhost:3000")  # Allow requests from React app
+    response.headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
     response.headers.add("Access-Control-Allow-Credentials", "true")
     return response
 
@@ -22,43 +25,63 @@ def error_response(message, status_code):
 # Admin authorization decorator
 def admin_required(f):
     @wraps(f)
+    @jwt_required()  # Require a valid JWT to access this route
     def decorated_function(*args, **kwargs):
-        if not request.headers.get("is_admin"):
+        user_id = get_jwt_identity()  # Get the current user's ID from the JWT
+        user = User.query.get(user_id)
+        if not user or not user.is_admin():
             return jsonify({"message": "Admin access required"}), 403
         return f(*args, **kwargs)
     return decorated_function
 
-# User Registration
-@routes.route('/register', methods=['POST'])
-def register():
+# Admin Registration
+@routes.route('/register-admin', methods=['POST'])
+def register_admin():
     data = request.get_json()
-
-    # Check if data is None or not a dictionary
-    if not data or not isinstance(data, dict):
-        return jsonify({"error": "Invalid data format"}), 400
-
-    # Validate required fields
     required_fields = ['name', 'email', 'password', 'phone_number']
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"{field} is required"}), 400
 
-    # Check if the user already exists
     if User.query.filter_by(email=data['email']).first():
-        return jsonify({"message": "User already exists"}), 400
+        return jsonify({"message": "Admin already exists"}), 400
 
-    # Hash the password
     hashed_password = generate_password_hash(data['password'])
+    admin_user = User(
+        name=data['name'],
+        email=data['email'],
+        phone_number=data['phone_number'],
+        password_hash=hashed_password,
+        role='admin'
+    )
+    db.session.add(admin_user)
+    db.session.commit()
+
+    return jsonify({"message": "Admin registered successfully"}), 201
+
+# User Registration
+@routes.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    if not data or not isinstance(data, dict):
+        return error_response("Invalid data format", 400)
+
+    required_fields = ['name', 'email', 'password', 'phone_number']
+    missing_fields = [field for field in required_fields if field not in data]
     
-    # Create a new user instance
+    if missing_fields:
+        return error_response(f"Missing fields: {', '.join(missing_fields)}", 400)
+
+    if User.query.filter_by(email=data['email']).first():
+        return error_response("User already exists", 400)
+
     user = User(
         name=data['name'],
         email=data['email'],
         phone_number=data['phone_number'],
-        password_hash=hashed_password
+        role='user'  # Default role
     )
-
-    # Add and commit the new user to the database
+    user.set_password(data['password'])  # Use set_password to hash the password
     db.session.add(user)
     db.session.commit()
 
@@ -68,10 +91,54 @@ def register():
 @routes.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    user = User.query.filter_by(email=data['email']).first()
-    if user and check_password_hash(user.password_hash, data['password']):
-        return jsonify({"message": "Login successful", "user_id": user.user_id}), 200
-    return jsonify({"message": "Invalid credentials"}), 401
+    if not data or not isinstance(data, dict):
+        return error_response("Invalid data format", 400)
+
+    email = data.get('email')
+    password = data.get('password')
+
+    # Check for missing fields
+    if not email or not password:
+        return error_response("Email and password are required", 400)
+
+    user = User.query.filter_by(email=email).first()
+    
+    if user and user.check_password(password):  # Use the method defined in your User model
+        # Create JWT token using the correct user ID attribute
+        access_token = create_access_token(identity=user.user_id)  # Correctly reference user_id
+        return jsonify({"message": "Login successful", "access_token": access_token, "role": user.role}), 200
+
+    return error_response("Invalid credentials", 401)
+
+# Retrieve All Users (Admin Only)
+@routes.route('/users', methods=['GET'])
+@admin_required
+def get_all_users():
+    users = User.query.all()
+    return jsonify([{
+        "user_id": user.user_id,
+        "name": user.name,
+        "email": user.email,
+        "phone_number": user.phone_number,
+        "role": user.role
+    } for user in users]), 200
+
+# Update User Role (Admin Only)
+@routes.route('/users/<int:user_id>/role', methods=['PATCH'])
+@admin_required
+def update_user_role(user_id):
+    data = request.get_json()
+    user = User.query.get(user_id)
+    if not user:
+        return error_response("User not found", 404)
+
+    new_role = data.get('role')
+    if new_role not in ['user', 'admin']:
+        return error_response("Invalid role", 400)
+
+    user.role = new_role
+    db.session.commit()
+    return jsonify({"message": "User role updated successfully"}), 200
 
 # Retrieve All Products
 @routes.route('/products', methods=['GET'])
@@ -92,7 +159,7 @@ def get_products():
 def get_product(product_id):
     product = Product.query.get(product_id)
     if not product:
-        return jsonify({"message": "Product not found"}), 404
+        return error_response("Product not found", 404)
     return jsonify({
         "product_id": product.product_id,
         "name": product.name,
@@ -108,6 +175,12 @@ def get_product(product_id):
 @admin_required
 def add_product():
     data = request.get_json()
+    required_fields = ['name', 'description', 'price', 'stock_quantity', 'category']
+    
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        return error_response(f"Missing fields: {', '.join(missing_fields)}", 400)
+
     product = Product(
         name=data['name'],
         description=data['description'],
@@ -127,7 +200,8 @@ def update_product(product_id):
     data = request.get_json()
     product = Product.query.get(product_id)
     if not product:
-        return jsonify({"message": "Product not found"}), 404
+        return error_response("Product not found", 404)
+
     product.name = data.get('name', product.name)
     product.description = data.get('description', product.description)
     product.price = data.get('price', product.price)
@@ -143,7 +217,7 @@ def update_product(product_id):
 def delete_product(product_id):
     product = Product.query.get(product_id)
     if not product:
-        return jsonify({"message": "Product not found"}), 404
+        return error_response("Product not found", 404)
     db.session.delete(product)
     db.session.commit()
     return jsonify({"message": "Product deleted successfully"}), 200
@@ -152,11 +226,24 @@ def delete_product(product_id):
 @routes.route('/products/<int:product_id>/reviews', methods=['POST'])
 def add_review(product_id):
     data = request.get_json()
+    user_id = data.get('user_id')
+
+    # Check if the user exists
+    user = User.query.get(user_id)
+    if not user:
+        return error_response("User not found", 404)
+
+    required_fields = ['rating']
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        return error_response(f"Missing fields: {', '.join(missing_fields)}", 400)
+
     review = Review(
         product_id=product_id,
-        user_id=data['user_id'],
+        user_id=user_id,
         rating=data['rating'],
-        review_text=data.get('review_text')
+        review_text=data.get('review_text'),
+        status='pending'  # Default status for new reviews
     )
     db.session.add(review)
     db.session.commit()
@@ -171,61 +258,59 @@ def get_reviews(product_id):
         "user_id": r.user_id,
         "rating": r.rating,
         "review_text": r.review_text,
-        "created_at": r.created_at.isoformat()
+        "status": r.status
     } for r in reviews]), 200
+
+# Approve or Reject Review (Admin Only)
+@routes.route('/reviews/<int:review_id>/status', methods=['PATCH'])
+@admin_required
+def update_review_status(review_id):
+    data = request.get_json()
+    review = Review.query.get(review_id)
+    if not review:
+        return error_response("Review not found", 404)
+
+    status = data.get('status')
+    if status not in ['approved', 'rejected']:
+        return error_response("Invalid status", 400)
+
+    review.status = status
+    db.session.commit()
+    return jsonify({"message": "Review status updated successfully"}), 200
 
 # Create Order
 @routes.route('/orders', methods=['POST'])
+@jwt_required()  # Require a valid JWT to access this route
 def create_order():
     data = request.get_json()
-    user_id = data['user_id']
-    items = data['items']
-    total_amount = sum(item['price'] * item['quantity'] for item in items)
-    order = Order(
-        user_id=user_id,
-        total_amount=total_amount,
-        shipping_address=data['shipping_address']
-    )
+    user_id = get_jwt_identity()  # Get the current user's ID from the JWT
+
+    order = Order(user_id=user_id, status='pending')
     db.session.add(order)
     db.session.commit()
 
-    for item in items:
-        order_item = OrderItem(
-            order_id=order.order_id,
-            product_id=item['product_id'],
-            quantity=item['quantity'],
-            price_at_purchase=item['price']
-        )
+    # Add order items
+    for item in data.get('items', []):
+        order_item = OrderItem(order_id=order.order_id, product_id=item['product_id'], quantity=item['quantity'])
         db.session.add(order_item)
 
     db.session.commit()
     return jsonify({"message": "Order created successfully", "order_id": order.order_id}), 201
 
-# Get All Orders for a User
-@routes.route('/users/<int:user_id>/orders', methods=['GET'])
-def get_orders(user_id):
+# Get Orders for User
+@routes.route('/orders', methods=['GET'])
+@jwt_required()  # Require a valid JWT to access this route
+def get_orders():
+    user_id = get_jwt_identity()  # Get the current user's ID from the JWT
     orders = Order.query.filter_by(user_id=user_id).all()
     return jsonify([{
         "order_id": o.order_id,
-        "total_amount": float(o.total_amount),
         "status": o.status,
-        "shipping_address": o.shipping_address,
-        "created_at": o.created_at.isoformat(),
-        "items": [{
-            "product_id": item.product_id,
-            "quantity": item.quantity,
-            "price_at_purchase": float(item.price_at_purchase)
-        } for item in o.order_items]
+        "created_at": o.created_at
     } for o in orders]), 200
 
-# Update Order Status (Admin Only)
-@routes.route('/orders/<int:order_id>', methods=['PUT'])
-@admin_required
-def update_order_status(order_id):
-    data = request.get_json()
-    order = Order.query.get(order_id)
-    if not order:
-        return jsonify({"message": "Order not found"}), 404
-    order.status = data.get('status', order.status)
-    db.session.commit()
-    return jsonify({"message": "Order status updated successfully"}), 200
+# Run CORS preflight
+@routes.route('/cors-preflight', methods=['OPTIONS'])
+def cors_preflight():
+    return _build_cors_prelight_response()
+
