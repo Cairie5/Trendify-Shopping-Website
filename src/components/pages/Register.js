@@ -3,6 +3,8 @@ import { Button, TextField, Typography, Box, Grid, Snackbar } from '@mui/materia
 import { register } from '../../services/authService'; 
 import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
 
+
+// sign up page
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

@@ -29,6 +29,13 @@ export const addToCart = async (product) => {
 
   // Save the updated cart back to local storage
   saveCartToLocalStorage(cart);
+
+  // Send the updated cart to the backend
+  await fetch(`${BASE_URL}/cart`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cart),
+  });
 };
 
 // Get all items in the cart
@@ -37,7 +44,7 @@ export const getCartItems = () => {
 };
 
 // Remove a product from the cart
-export const removeFromCart = (productId) => {
+export const removeFromCart = async (productId) => {
   const cart = getCartFromLocalStorage();
   
   // Filter out the product to remove it
@@ -45,9 +52,21 @@ export const removeFromCart = (productId) => {
   
   // Save the updated cart
   saveCartToLocalStorage(updatedCart);
+
+  // Send the updated cart to the backend
+  await fetch(`${BASE_URL}/cart`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updatedCart),
+  });
 };
 
 // Clear the cart
-export const clearCart = () => {
+export const clearCart = async () => {
   localStorage.removeItem('cart');
+
+  // Optionally, clear the cart on the backend (if applicable)
+  await fetch(`${BASE_URL}/cart`, {
+    method: 'DELETE',
+  });
 };

@@ -11,7 +11,7 @@ export const login = async (email, password) => {
   if (!response.ok) {
     throw new Error(`Login failed: ${response.statusText}`);
   }
-  return response.json();
+  return response.json(); // Make sure this returns the JWT token
 };
 
 export const register = async (name, email, password, phoneNumber) => {
@@ -22,7 +22,7 @@ export const register = async (name, email, password, phoneNumber) => {
       name,
       email,
       password,
-      phone_number: phoneNumber, // Ensure this matches the backend field
+      phone_number: phoneNumber,
     }),
   });
   if (!response.ok) {
@@ -33,9 +33,13 @@ export const register = async (name, email, password, phoneNumber) => {
 
 // New function to get user profile
 export const getProfile = async (userId) => {
+  const token = localStorage.getItem('token'); // Get token from local storage
   const response = await fetch(`${BASE_URL}/profile/${userId}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`, // Include the token
+    },
   });
   if (!response.ok) {
     throw new Error(`Failed to fetch profile: ${response.statusText}`);
