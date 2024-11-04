@@ -1,5 +1,3 @@
-// src/services/authService.js
-
 const BASE_URL = 'http://127.0.0.1:5000'; // Update to match your backend
 
 export const login = async (email, password) => {
@@ -11,7 +9,10 @@ export const login = async (email, password) => {
   if (!response.ok) {
     throw new Error(`Login failed: ${response.statusText}`);
   }
-  return response.json(); // Make sure this returns the JWT token
+  const data = await response.json();
+  // Store the token in local storage
+  localStorage.setItem('token', data.access_token);
+  return data; // Return the user data, including the JWT token
 };
 
 export const register = async (name, email, password, phoneNumber) => {
@@ -32,9 +33,9 @@ export const register = async (name, email, password, phoneNumber) => {
 };
 
 // New function to get user profile
-export const getProfile = async (userId) => {
+export const getProfile = async () => {
   const token = localStorage.getItem('token'); // Get token from local storage
-  const response = await fetch(`${BASE_URL}/profile/${userId}`, {
+  const response = await fetch(`${BASE_URL}/profile`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
