@@ -1,21 +1,50 @@
+/* App.css */
+
+/* General reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+}
+
+/* App styling */
 .App {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
+body {
+  background-color: #f7efe5; /* Set the background color for the entire website */
+  margin: 0; /* Remove default margin */
+}
+
+/* Logo styling */
+.trendify-logo {
+  height: 150px; /* Adjust the height for your logo */
   pointer-events: none;
+  position: absolute; /* Positioning the logo */
+  top: 0px; /* Distance from the top */
+  left: 5px; /* Distance from the left */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Layout Styles */
+.layout {
+  text-align: center;
 }
 
+.header {
+  background-color: #f7efe5; /* Header background color */
+  min-height: 80px; /* Minimum height for the header */
+  display: flex;
+  align-items: center; /* Center items vertically */
+  justify-content: flex-start; /* Align items to the left */
+  padding: 20px; /* Adjust padding for spacing */
+}
+
+/* Header styling */
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  background-color: #282c34; /* Keep this if you want a separate App header */
+  min-height: 100vh; /* Full height for the App */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -28,11 +57,136 @@
   color: #61dafb;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Layout */
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background-color: #f9d6d3;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar .brand {
+  text-align: center;
+}
+
+.sidebar .logo {
+  width: 200px;
+  height: 150px;
+}
+
+.sidebar h2 {
+  margin-top: 10px;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.nav-item {
+  text-decoration: none;
+  color: #333;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 5px;
+}
+
+.nav-item.active,
+.nav-item:hover {
+  background-color: #ef476f;
+  color: white;
+}
+
+.logout {
+  background-color: #ef476f;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  background-color: #fdf5f1;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+}
+
+.search-bar .search-btn {
+  background-color: #ef476f;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-profile .profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* Dashboard */
+.dashboard h1 {
+  margin-bottom: 20px;
+}
+
+.widgets {
+  display: flex;
+  gap: 20px;
+}
+
+.widget {
+  flex: 1;
+  background-color: #7209b7;
+  color: white;
+  padding: 30px;
+  text-align: center;
+  border-radius: 10px;
+  font-size: 1.2rem;
+}
+
+/* Revenue Chart */
+.chart {
+  margin-top: 40px;
+}
+
+/* Footer */
+.App-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
 }
